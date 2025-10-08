@@ -32,10 +32,53 @@ public class EditProductActivity extends AppCompatActivity {
         }
 
         btnSave.setOnClickListener(v -> {
+            // validate inputs: name and price required
             String name = etName.getText().toString().trim();
+            String priceStr = etPrice.getText().toString().trim();
+
+            boolean ok = true;
+
+            if (name.isEmpty()) {
+                etName.setError("Tên sản phẩm bắt buộc");
+                ok = false;
+            } else {
+                etName.setError(null);
+            }
+
+            if (priceStr.isEmpty()) {
+                etPrice.setError("Giá bắt buộc");
+                ok = false;
+            }
+
             double price = 0;
-            try { price = Double.parseDouble(etPrice.getText().toString().trim()); } catch (Exception ignored) {}
-            Product outP = new Product(name, price);
+            if (ok) {
+                try {
+                    price = Double.parseDouble(priceStr);
+                    if (price < 0) {
+                        etPrice.setError("Giá phải >= 0");
+                        ok = false;
+                    } else {
+                        etPrice.setError(null);
+                    }
+                } catch (Exception ex) {
+                    etPrice.setError("Giá không hợp lệ");
+                    ok = false;
+                }
+            }
+
+            if (!ok) {
+                // không lưu nếu có lỗi (user sửa input)
+                return;
+            }
+
+            // giữ nguyên id/description/quantity khi chỉnh sửa
+            Product outP;
+            if (p != null) {
+                outP = new Product(p.getId(), name, p.getDescription() == null ? "" : p.getDescription(), price, p.getQuantity());
+            } else {
+                outP = new Product(name, price);
+            }
+
             Intent out = new Intent();
             out.putExtra(EXTRA_PRODUCT, outP);
             out.putExtra(EXTRA_POSITION, pos);
